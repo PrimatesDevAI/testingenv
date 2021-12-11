@@ -21,7 +21,7 @@ def init_jit_model(model_path: str,
     model.eval()
     return model
   
-model = init_jit_model(model_path='./model.onnx')
+model = init_jit_model(model_path='./model.jit')
 
 def validate(model,inputs: torch.Tensor):
     with torch.no_grad():
