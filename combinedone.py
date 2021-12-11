@@ -13,16 +13,15 @@ new_confidence1=0
 new_confidence2=0
 import config
 
-model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad',
-                              model='silero_vad',
-                              force_reload=True)
-(get_speech_ts,
- get_speech_ts_adaptive,
- save_audio,
- read_audio,
- state_generator,
- single_audio_stream,
- collect_chunks) = utils
+
+def init_jit_model(model_path: str,
+                   device=torch.device('cpu')):
+    torch.set_grad_enabled(False)
+    model = torch.jit.load(model_path, map_location=device)
+    model.eval()
+    return model
+  
+model = init_jit_model(model_path='./model.onnx')
 
 def validate(model,inputs: torch.Tensor):
     with torch.no_grad():
@@ -46,8 +45,6 @@ audio = pyaudio.PyAudio()
 frames_to_record = 20 
 frame_duration_ms = 250
 
-from jupyterplot import ProgressPlot
-import threading
 
 
 continue_recording = True
@@ -61,9 +58,7 @@ stream1 = audio.open(format=FORMAT,
                 input_device_index=1)
 data1 = []
 voiced_confidences1 = []
-global new_confidence1
 continue_recording1 = True
-#pp1 = ProgressPlot(plot_names=["Primates Dev Detector"],line_names=["speech probabilities"], x_label="audio chunks")
 
 while continue_recording1:
     audio_chunk1 = stream1.read(int(SAMPLE_RATE * frame_duration_ms / 1000.0))
